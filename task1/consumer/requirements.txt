@@ -1,0 +1,3 @@
+pika
+peewee
+psycopg2
