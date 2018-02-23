@@ -1,0 +1,58 @@
+{% extends 'todolist/base.html' %}
+
+{% load static %}
+
+{% block main %}
+
+<h1>Best TODO list ever</h1>
+
+<link rel="stylesheet" type="text/css" href="{% static 'main.css' %}" />
+
+<div class="row">
+<div class="column">
+<p>Add new task</p>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<form action="{% url 'index' %}" method="post">
+{% csrf_token %}
+{{ task_creation_form.as_p }}
+<input type="submit" value="Create task" />
+</form>
+</div>
+
+<div class="column">
+<p>Active tasks:</p>
+{% if active_tasks_list %}
+    <ul>
+    {% for task in active_tasks_list %}
+        <li>
+            <a href="{% url 'task_info' task.id %}">{{ task.name }}</a>
+            <form action="{% url 'do_task' task.id %}" method="post">
+                {% csrf_token %}
+                <input type="submit" value="Complete task" />
+            </form>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No active tasks.</p>
+{% endif %}
+</div>
+
+<div class="column">
+<p>Completed tasks:</p>
+{% if completed_tasks_list %}
+    <ul>
+    {% for task in completed_tasks_list %}
+        <li><a href="{% url 'task_info' task.id %}">{{ task.name }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No completed tasks.</p>
+{% endif %}
+</div>
+
+</div>
+
+{% endblock %}
