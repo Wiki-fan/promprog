@@ -11,3 +11,6 @@ ADD . /code/
 
 #EXPOSE 8000
 #CMD ["python", "manage.py", "runserver", "app:8421"] 
+#RUN python manage.py makemigrations
+#RUN python manage.py migrate
+#CMD ["bash", "-c", "sleep 3"]
