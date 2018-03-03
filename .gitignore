@@ -1,3 +1,7 @@
 .idea/
 __pycache__
+*.zip
+*.ipynb
+node_modules/
+migrations/
 

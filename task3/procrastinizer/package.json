@@ -1,0 +1,32 @@
+{
+  "name": "todolist",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "babel-preset-react": "^6.24.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "webpack --progress",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "dev": "webpack --progress --watch"
+  },
+  "devDependencies": {
+    "babel": "^6.23.0",
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.3",
+    "create-react-class": "^15.6.3",
+    "css-loader": "^0.28.10",
+    "moment": "^2.21.0",
+    "react": "^16.2.0",
+    "react-devtools": "^3.1.0",
+    "react-dom": "^16.2.0",
+    "react-router": "^4.2.0",
+    "react-router-dom": "^4.2.2",
+    "react-scripts": "^1.1.1",
+    "style-loader": "^0.20.2",
+    "webpack": "^4.0.1",
+    "webpack-cli": "^2.0.10"
+  }
+}

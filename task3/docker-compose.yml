@@ -1,0 +1,26 @@
+version: '3.1'
+
+services:
+
+  app:
+    build: procrastinizer
+    command: bash -c "sleep 30 && python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+    networks:
+      - backend
+ 
+  db:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: guest
+      POSTGRES_PASSWORD: guest
+    networks:
+      - backend
+
+networks:
+  backend:

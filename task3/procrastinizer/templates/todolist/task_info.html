@@ -1,0 +1,17 @@
+<h1>{{ task.name }}</h1>
+<p>{{ task.details }}</p>
+<p>Started on {{ task.set_date }}</p>
+{% if task.is_done %}
+    <p> Already done </p>
+{% else %}
+    <p> Not done yet </p>
+{% endif %}
+
+{% if not task.is_done %}
+    <form action="{% url 'task_info' task.id %}" method="post">
+    {% csrf_token %}
+    <input type="submit" value="Complete task" />
+    </form>
+{% endif %}
+
+<a href="{% url 'index' %}">Back</a>
