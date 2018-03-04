@@ -1,8 +1,7 @@
-/*var React = require('react');*/
 var ReactDOM = require('react-dom');
 
 import React, {Component} from 'react'
-//import ReactDOM from 'react-dom'
+
 import {BrowserRouter, Route, Link, Switch} from 'react-router-dom'
 import {format_date} from 'moment'
 
@@ -20,6 +19,7 @@ class Task extends React.Component {
         this.state = {
             name: '', details: '', is_done: '', set_date: ''
         };
+        this.handleSubmitPatch = this.handleSubmitPatch.bind(this);
     }
 
     loadTask(task_id) {
@@ -34,6 +34,34 @@ class Task extends React.Component {
         this.loadTask(this.props.match.params['task_id']);
     }
 
+    async handleSubmitPatch(event) {
+        event.preventDefault();
+        await axios({
+            method: 'patch',
+            url: '/api/task/' + this.props.match.params['task_id'] + '/',
+            data: {is_done: true},
+            headers: {
+                responseType: 'json',
+                //"X-CSRFToken": csrfToken,
+            }
+        })
+            .then(function (response) {
+                console.log(response);
+                //Perform action based on response
+            })
+            .catch(function (error) {
+                console.log(error);
+                //Perform action based on error
+            });
+
+        /*console.log(this.props.main.loadTasks);
+        await this.props.main.loadTasks();
+        console.log(this.props.main);
+        this.props.main.forceUpdate();*/
+        this.setState({is_done: true});
+
+    }
+
     render() {
         const {name, details, is_done, set_date} = this.state;
         return (
@@ -42,7 +70,73 @@ class Task extends React.Component {
                 <p className="task__details">{details}</p>
                 <p className="task__set_date">Started on {set_date}</p>
                 <p>{is_done ? ('Already done') : ('Not done yet')} </p>
+                {is_done == false ? (
+                    <form onSubmit={this.handleSubmitPatch}>
+                        <input type="submit" value="Complete task"/>
+                    </form>
+                ) : (
+                    ''
+                )}
                 <Link className="task__button" to="/">Back</Link>
+            </div>
+        );
+    }
+}
+
+class TaskBrief extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {is_done: this.props.is_done};
+
+        this.handleSubmitPatch = this.handleSubmitPatch.bind(this);
+    }
+
+    async handleSubmitPatch(event) {
+        event.preventDefault();
+        await axios({
+            method: 'patch',
+            url: '/api/task/' + this.props.task.id + '/',
+            data: {is_done: true},
+            headers: {
+                responseType: 'json',
+                //"X-CSRFToken": csrfToken,
+            }
+        })
+            .then(function (response) {
+                console.log(response);
+                //Perform action based on response
+            })
+            .catch(function (error) {
+                console.log(error);
+                //Perform action based on error
+            });
+
+        this.setState({name: '', descr: '', formFields: []});
+        console.log(this.props.main.loadTasks);
+        await this.props.main.loadTasks();
+        console.log(this.props.main);
+        this.props.main.forceUpdate();
+
+    }
+
+    render() {
+        let task = this.props.task;
+        if (task.is_done != this.state.is_done) {
+            return ''
+        }
+        return (
+            <div>
+                <li className="content-list__item">
+                    <Link to={`/${task.id}`}>{task.name}</Link>
+                    {task.is_done == false ? (
+                        <form onSubmit={this.handleSubmitPatch}>
+                            <input type="submit" value="Complete task"/>
+                        </form>
+                    ) : (
+                        ''
+                    )}
+                </li>
+
             </div>
         );
     }
@@ -53,28 +147,16 @@ class List extends React.Component {
 
     constructor(props) {
         super(props);
-        console.log(props);
         this.state = {tasks: props.tasks, is_done: props.is_done};
-    }
-
-
-    componentWillReceiveProps(nextProps) {
-        this.setState({tasks: nextProps.tasks})
     }
 
     render() {
         return (
             <div>
-                {this.state.tasks ? (
+                {this.props.tasks ? (
                     <ul className="content-list">
-                        {this.state.tasks.map((task, i) => (
-                            (task.is_done == this.state.is_done ?
-                                    (<li className="content-list__item" key={i}>
-                                        <Link to={`/${task.id}`}>{task.name}</Link>
-                                    </li>)
-                                    :
-                                    ('')
-                            )
+                        {this.props.tasks.map((task, i) => (
+                            <TaskBrief main={this.props.main} task={task} is_done={this.state.is_done} key={i}/>
                         ))}
                     </ul>
                 ) : (<p>No tasks.</p>)}
@@ -94,38 +176,34 @@ class MainPage extends React.Component {
         this.handleChange = this.handleChange.bind(this);
     }
 
-    handleSubmit(event) {
-        //alert('An essay was submitted: ' + this.state.name + '_' + this.state.descr);
+    async handleSubmit(event) {
+        event.preventDefault();
         let formFields = {name: this.state.name, details: this.state.descr};
-        //console.log(formFields);
-        axios({
+        await axios({
             method: 'post',
             url: '/api/task/',
             data: formFields,
             headers: {
                 responseType: 'json',
-                //"X-CSRFToken": csrfToken,
             }
         })
             .then(function (response) {
-                console.log(response);
+                //console.log(response);
                 //Perform action based on response
             })
             .catch(function (error) {
                 console.log(error);
                 //Perform action based on error
             });
-        event.preventDefault();
         this.setState({name: '', descr: '', formFields: []});
-        console.log('props');
-        console.log(this.props);
+        await this.loadTasks();
     }
 
     async loadTasks() {
+        console.log('loading tasks');
         this.setState({
             tasks: await fetch("/api/task/").then(response => response.json())
         });
-        console.log(this.state);
     }
 
     componentDidMount() {
@@ -138,11 +216,6 @@ class MainPage extends React.Component {
         this.setState({
             [name]: event.target.value
         });
-        /*let formFields = this.state.formFields;
-        formFields[event.target.name] = event.target.value;
-        this.setState({
-            formFields
-        });*/
     }
 
     render() {
@@ -169,12 +242,12 @@ class MainPage extends React.Component {
 
                     <div className="column">
                         <p>Active tasks:</p>
-                        <List is_done={false} tasks={this.state.tasks}/>
+                        <List main={this} is_done={false} tasks={this.state.tasks}/>
                     </div>
 
                     <div className="column">
                         <p>Completed tasks:</p>
-                        <List is_done={true} tasks={this.state.tasks}/>
+                        <List main={this} is_done={true} tasks={this.state.tasks}/>
                     </div>
 
                 </div>
@@ -183,12 +256,6 @@ class MainPage extends React.Component {
     }
 }
 
-
-/*<div>
-    <input type="text" value={this.state.data}
-           onChange={this.updateState}/>
-    <h4>{this.state.data}</h4>
-</div>*/
 
 const Main = () => (
     <BrowserRouter>
@@ -199,7 +266,7 @@ const Main = () => (
             </Switch>
         </main>
     </BrowserRouter>
-)
+);
 
 
 ReactDOM.render(<Main/>, document.getElementById('app'));
