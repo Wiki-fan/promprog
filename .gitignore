@@ -4,4 +4,4 @@ __pycache__
 *.ipynb
 node_modules/
 migrations/
-
+db.sqlite3

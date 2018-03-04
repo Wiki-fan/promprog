@@ -7,6 +7,8 @@ WORKDIR /code
 # our installed requirements rather than reinstall them on every build
 ADD requirements.txt /code/
 RUN pip install -r requirements.txt
+RUN npm i
+RUN npm run build
 ADD . /code/
 
 #EXPOSE 8000
