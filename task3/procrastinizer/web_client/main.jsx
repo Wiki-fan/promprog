@@ -5,6 +5,12 @@ import React, {Component} from 'react'
 //import ReactDOM from 'react-dom'
 import {BrowserRouter, Route, Link, Switch} from 'react-router-dom'
 import {format_date} from 'moment'
+
+import axios from 'axios';
+
+axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
+axios.defaults.xsrfCookieName = "csrftoken";
+
 import css from './main.css';
 
 
@@ -47,18 +53,13 @@ class List extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {tasks: [], is_done:props.is_done};
+        console.log(props);
+        this.state = {tasks: props.tasks, is_done: props.is_done};
     }
 
-    async loadTasks() {
-        this.setState({
-            tasks: await fetch("/api/task/?is_done="+this.state.is_done).then(response => response.json())
-        })
-    }
 
-    componentDidMount() {
-        this.loadTasks();
-        console.log(this.state);
+    componentWillReceiveProps(nextProps) {
+        this.setState({tasks: nextProps.tasks})
     }
 
     render() {
@@ -67,16 +68,18 @@ class List extends React.Component {
                 {this.state.tasks ? (
                     <ul className="content-list">
                         {this.state.tasks.map((task, i) => (
-                            <li className="content-list__item" key={i}>
-                                <Link to={`/${task.id}`}>{task.name}</Link>
-                            </li>
+                            (task.is_done == this.state.is_done ?
+                                    (<li className="content-list__item" key={i}>
+                                        <Link to={`/${task.id}`}>{task.name}</Link>
+                                    </li>)
+                                    :
+                                    ('')
+                            )
                         ))}
                     </ul>
                 ) : (<p>No tasks.</p>)}
 
             </div>
-            //<Route path={`${match.url}/:topicId`} component={Task}/>
-            //<Route exact path={match.url} render={() => <h3>Please select a topic.</h3>}/>
         );
     }
 }
@@ -85,21 +88,66 @@ class MainPage extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = {name: '', descr: '', formFields: [], tasks: []};
+
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleChange = this.handleChange.bind(this);
     }
 
     handleSubmit(event) {
-        alert('An essay was submitted: ' + this.state.value);
+        //alert('An essay was submitted: ' + this.state.name + '_' + this.state.descr);
+        let formFields = {name: this.state.name, details: this.state.descr};
+        //console.log(formFields);
+        axios({
+            method: 'post',
+            url: '/api/task/',
+            data: formFields,
+            headers: {
+                responseType: 'json',
+                //"X-CSRFToken": csrfToken,
+            }
+        })
+            .then(function (response) {
+                console.log(response);
+                //Perform action based on response
+            })
+            .catch(function (error) {
+                console.log(error);
+                //Perform action based on error
+            });
         event.preventDefault();
+        this.setState({name: '', descr: '', formFields: []});
+        console.log('props');
+        console.log(this.props);
+    }
+
+    async loadTasks() {
+        this.setState({
+            tasks: await fetch("/api/task/").then(response => response.json())
+        });
+        console.log(this.state);
+    }
+
+    componentDidMount() {
+        this.loadTasks();
     }
 
     handleChange(event) {
-        this.setState({name: event.target.name, descr: event.target.descr});
+        const name = event.target.name;
+
+        this.setState({
+            [name]: event.target.value
+        });
+        /*let formFields = this.state.formFields;
+        formFields[event.target.name] = event.target.value;
+        this.setState({
+            formFields
+        });*/
     }
 
     render() {
         return (
-            <div>
+            <div ref="myRef">
                 <h1>Best TODO list ever</h1>
 
                 <div className="row">
@@ -109,11 +157,11 @@ class MainPage extends React.Component {
                         <form onSubmit={this.handleSubmit}>
                             <label>
                                 Name:
-                                <input type="text" value={this.state.name} onChange={this.handleChange}/>
+                                <input type="text" name="name" value={this.state.name} onChange={this.handleChange}/>
                             </label><br/>
                             <label>
                                 Description:
-                                <input type="text" value={this.state.descr} onChange={this.handleChange}/>
+                                <input type="text" name="descr" value={this.state.descr} onChange={this.handleChange}/>
                             </label><br/>
                             <input type="submit" value="Create task"/>
                         </form>
@@ -121,12 +169,12 @@ class MainPage extends React.Component {
 
                     <div className="column">
                         <p>Active tasks:</p>
-                        <List is_done={false}/>
+                        <List is_done={false} tasks={this.state.tasks}/>
                     </div>
 
                     <div className="column">
                         <p>Completed tasks:</p>
-                        <List is_done={true}/>
+                        <List is_done={true} tasks={this.state.tasks}/>
                     </div>
 
                 </div>

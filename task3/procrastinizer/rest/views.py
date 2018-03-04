@@ -1,6 +1,10 @@
 from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, generics
+from rest_framework.authentication import BasicAuthentication
+from rest_framework.permissions import AllowAny
+
+from rest.middleware import CsrfExemptSessionAuthentication
 from .serializers import *
 from todolist.models import Task
 
@@ -8,6 +12,8 @@ from todolist.models import Task
 # Create your views here.
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
+    permission_classes = (AllowAny,)
+    #authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
     #lookup_field = 'is_done'
 
     def get_serializer_class(self):
@@ -20,19 +26,3 @@ class TaskViewSet(viewsets.ModelViewSet):
     #     is_done = kwargs.get('is_done', None)
     #     self.queryset = Task.objects.filter(is_done=is_done)
     #     return super(TaskViewSet, self).retrieve(request, *args, **kwargs)
-
-#
-# class TaskList(generics.ListAPIView):
-#     serializer_class = TaskSerializer
-#     queryset = Task.objects.all()
-#
-#     def get_queryset(self):
-#         """
-#         This view should return a list of all the purchases for
-#         the user as determined by the username portion of the URL.
-#         """
-#         queryset = Task.objects.all()
-#         is_done = self.request.query_params.get('is_done', None)
-#         if is_done is not None:
-#             queryset = queryset.filter(task__is_done=is_done)
-#         return queryset
