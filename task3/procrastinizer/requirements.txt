@@ -1,4 +1,5 @@
 djangorestframework
 django
 psycopg2
+django-filters
 
